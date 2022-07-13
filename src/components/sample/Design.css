@@ -1,0 +1,74 @@
+.Cards {
+    font-family: 'Segoe UI';
+    font-style: normal;
+    font-weight: 400;
+    color: #484644;
+}
+
+.Cards1 {
+    font-family: 'Segoe UI';
+    font-style: normal;
+    font-weight: 400;
+    color: #484644;
+    display: flex;
+    justify-content: center;
+    width: 80%;
+}
+
+.info-content {
+    font-family: 'Segoe UI';
+    font-style: normal;
+    color: #535353;
+    font-size: 15px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.info-button {
+    display: flex;
+    justify-content: center;
+}
+
+.heading {
+    font-family: 'Segoe UI';
+    font-style: normal;
+    color: #363636;
+    font-size: 20px;
+    text-align: center;
+}
+
+.progressHeads {
+    font-weight: 600;
+    font-size: large;
+    color: #484644
+}
+
+.progressBox {
+    display: inline-flex;
+    line-height: 40px;
+} 
+
+.progressLoader {
+    font-family: 'Segoe UI';
+    font-style: normal;
+    color: #784d18;
+}
+
+.Intro {
+    font-family: 'Segoe UI';
+    font-style: normal;
+    color: #666363;
+    font-size: 20px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.Upload {
+    border: none;
+    color: black;
+    padding: 10px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

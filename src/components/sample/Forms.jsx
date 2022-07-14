@@ -20,12 +20,12 @@ export const Forms = (props) => {
     const MobileNo = useInputState();
     const Location = useInputState();
     const About = useInputState();
-    const Job = useInputState();
     const Code = useInputState();
     const { instance, accounts } = useMsal();
     const [token, setToken] = useState();
     const [saveProfile, setSaveProfile] = useState(false);
     const [selectedJob, setSelectedJob] = useState(false);
+    const [referCall, setReferCall] = useState(false);
 
 
     let locationCountryCodes = locations();
@@ -125,24 +125,24 @@ export const Forms = (props) => {
 
     const sendForm = async (e) => {
         e.preventDefault();
-        const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, About, Code } = e.target
+        const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, isEndorsed, isUniversity, About, Code } = e.target
 
         console.log(FirstName.value);
         console.log(LastName.value);
 
         const profileId = (props.item?.profileId)?.toString();
 
-        var url = 'https://localhost:7119/profiles/update/'
+        var url = 'https://referralprofilesv2-api.azure-api.net/v1/profiles/'
 
         url = url + profileId;
 
         await fetch(url, {
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             method: 'PUT',
-            mode: 'cors',
+
             body: JSON.stringify({
                 firstName: FirstName.value,
                 lastName: LastName.value,
@@ -150,11 +150,60 @@ export const Forms = (props) => {
                 mobileNo: MobileNo.value,
                 location: Location.value,
                 relation: Relation.value,
+                exampleRadios1: isEndorsed.value,
+                exampleRadios2: isUniversity.value,
                 about: About.value,
                 code: Code.value
             })
         })
         setSaveProfile(true);
+    }
+
+    const handleClickEvent = () => {
+        const form = profileForm.current;
+        const formData = new FormData();
+
+        formData.append('firstName', form['FirstName'].value);
+        formData.append('lastName', form['LastName'].value);
+        formData.append('candidateEmail', form['InputEmail'].value);
+        formData.append('location', form['Location'].value);
+        formData.append('profile', form['Position'].value);
+        formData.append('jobIds', form['Job'].value);
+        formData.append('acquaintanceLevel', form['Relation'].value);
+        formData.append('additionalInformation', form['About'].value);
+        formData.append('campaignCode', form['Code'].value);
+        formData.append('isUniversityStudent', form['isUniversity'].value);
+        formData.append('isEndorsed', form['isEndorsed'].value);
+        formData.append('resumeFile', "");
+
+
+        instance.acquireTokenSilent({
+            ...loginRequest,
+            account: accounts[0]
+        }).then((response) => {
+            // console.log("Token = " + token);
+            setToken(response.idToken);
+        });
+
+        var bearer = 'Bearer ' + token;
+        console.log("Testing bearer = " + bearer);
+
+        fetch('https://hrgtareferservicedev.azurewebsites.net/v2/refer', {
+            method: 'POST',
+            headers: {
+                // 'Content-Type': 'multipart/form-data',
+                'Authorization': bearer
+            },
+            mode: 'cors',
+            body: formData,
+        }).then((response) => response.json())
+            .then((result) => {
+                console.log('Success:', result);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        setReferCall(true);
     }
 
 
@@ -206,7 +255,7 @@ export const Forms = (props) => {
 
             <FormInput {...Code} label="Referral Campaign Code" type="text" name="Code" id="Code" aria-describedby="Referral campaign code" placeholder="Enter Code here" inline /><br />
             <div style={{ display: "inline-block" }}>
-                <Button primary style={{ width: "9rem", float: "right", margin: "0px 5px" }}>Submit Referral</Button>
+                <Button primary onClick={handleClickEvent} style={{ width: "9rem", float: "right", margin: "0px 5px" }}>Submit Referral</Button>
                 <Button type="submit" secondary style={{ width: "9rem", float: "right", margin: "0px 5px" }}>Save Profile</Button>
             </div>
             <div>

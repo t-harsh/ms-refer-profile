@@ -70,11 +70,10 @@ export const FormsDirect = (props) => {
         formData.append('profile', form['Position'].value);
         formData.append('jobIds', form['Job'].value);
         formData.append('acquaintanceLevel', props.item.relation);
-        formData.append('isEndorsed', true);
-        formData.append('isUniversityStudent', true);
         formData.append('additionalInformation', props.item.about);
         formData.append('campaignCode', props.item.code);
-        formData.append('isUniversityStudent', 'true');
+        formData.append('isUniversityStudent', props.item.isUniversity);
+        formData.append('isEndorsed', props.item.isEndorsed);
         formData.append('resumeFile', "");
 
 

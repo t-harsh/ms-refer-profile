@@ -12,7 +12,7 @@ export function Deploy() {
 
 
   const fetchData = () => {
-    fetch("https://localhost:7119/profiles")
+    fetch("https://referralprofilesv2-api.azure-api.net/v1/profiles")
       .then((response) => {
         return response.json();
       }).then((data) => {

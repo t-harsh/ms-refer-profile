@@ -1,6 +1,6 @@
-import { Button, CardHeader, CardBody, Card, Flex, Text, Grid, Segment, Loader, Alert } from "@fluentui/react-northstar";
+import { Button, CardHeader, CardBody, Card, Flex, Text, Grid, Segment, Loader, Alert, Attachment } from "@fluentui/react-northstar";
 import { Form, Input, FormField, FormLabel, FormMessage, FormTextArea, FormInput, FormDropdown, FormRadioGroup, Divider, Avatar } from '@fluentui/react-northstar';
-import { ApprovalsAppbarIcon, BookmarkIcon, ContactCardIcon, CallControlPresentNewIcon, AcceptIcon, MeetingNewIcon, AttendeeIcon } from '@fluentui/react-icons-northstar'
+import { ApprovalsAppbarIcon, BookmarkIcon, ContactCardIcon, CallControlPresentNewIcon, AcceptIcon, MeetingNewIcon, AttendeeIcon, FilesPdfIcon } from '@fluentui/react-icons-northstar'
 import { ResumeParse } from "./resume";
 import React, { useState, useRef } from "react";
 import useInputState from "../../hooks/useInputState";
@@ -101,35 +101,73 @@ export function Design() {
   const sendForm = async (e) => {
     e.preventDefault();
 
-    const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, About, Code } = e.target
+    const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, isEndorsed, isUniversity, About, Code } = e.target
 
     console.log(FirstName.value);
     console.log(LastName.value);
+    console.log(About.value);
 
 
-    await fetch('https://localhost:7119/profiles/create', {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
+    let form = profileForm.current;
+    console.log(`${form['FirstName'].value} ${form['LastName'].value}`)
+
+    let formData = new FormData();
+    if (selectedFile) {
+      formData.append('firstName',FirstName.value );
+      formData.append('lastName', LastName.value);
+      formData.append('candidateEmail', InputEmail.value);
+      formData.append('location', Location.value);
+      formData.append('profile', Position.value);
+      formData.append('acquaintanceLevel', Relation.value);
+      formData.append('isEndorsed', true);
+      formData.append('additionalInformation', About.value);
+      formData.append('campaignCode', Code.value);
+      formData.append('isUniversityStudent', true);
+      formData.append('resumeFile', selectedFile);
+      
+    }
+    
+    console.log("Form-data : " , formData);
+
+    await fetch('https://localhost:7119/upload', {
       method: 'POST',
       mode: 'cors',
-      body: JSON.stringify({
-        firstName: FirstName.value,
-        lastName: LastName.value,
-        emailId: InputEmail.value,
-        mobileNo: MobileNo.value,
-        location: Location.value,
-        relation: Relation.value,
-        about: About.value,
-        code: Code.value
+      body: formData,
+    }).then((response) => response.json())
+      .then((result) => {
+        console.log('Success:', result);
+        setSaveProfile(true);
       })
-    })
-    setSaveProfile(true);
+      .catch((error) => {
+        console.error('Error:', error);
+      });
   }
 
+  //   await fetch('https://referralprofilesv2-api.azure-api.net/v1/profiles/create', {
+  //     headers: {
+  //       // 'Accept': 'application/json',
+  //       'Content-Type': 'application/json',
+  //     },
+  //     method: 'POST',
+  //     mode: 'cors',
+  //     body: JSON.stringify({
+        // firstName: FirstName.value,
+        // lastName: LastName.value,
+        // emailId: InputEmail.value,
+        // mobileNo: MobileNo.value,
+        // location: Location.value,
+        // relation: Relation.value,
+        // exampleRadios1: true,
+        // exampleRadios2: true,
+        // about: About.value,
+        // code: Code.value
+  //     })
+  //   })
+  //   setSaveProfile(true);
+  // }
+
   const handleClickEvent = () => {
-    const form = profileForm.current;
+    let form = profileForm.current;
     console.log(`${form['FirstName'].value} ${form['LastName'].value}`)
     const formData = new FormData();
     if (selectedFile) {
@@ -139,8 +177,8 @@ export function Design() {
       formData.append('location', form['Location'].value);
       formData.append('profile', (form['Position'].value).toString());
       formData.append('acquaintanceLevel', form['Relation'].value);
-      formData.append('isEndorsed', 1);
-      formData.append('isUniversityStudent', true);
+      formData.append('isEndorsed', form['isEndorsed'].value);
+      formData.append('isUniversityStudent', form['isUniversity'].value);
       formData.append('additionalInformation', (form['About'].value).toString());
       formData.append('campaignCode', (form['Code'].value).toString());
       formData.append('isUniversityStudent', 'true');
@@ -250,7 +288,7 @@ export function Design() {
   return (
     <div className="body">
       <div className="heading">
-        Choose From Creating A New Referral <i style={{ color: "#5B5FC7" }}>&nbsp; or &nbsp;</i> Select From The Existing Ones
+        OR
         <br />
       </div>
 
@@ -269,25 +307,21 @@ export function Design() {
             elevated
             inverted
             className="Cards"
-            style={{ backgroundColor: "#fcfcfc", width: "80%", float: "right", marginRight: "10px" }}>
+            style={{ backgroundColor: "#fcfcfc", width: "70%", float: "right", marginRight: "40px" }}
+            onClick={() => scrollToSmoothly(document.getElementById("create-refer").offsetTop, 500)}>
 
             <Flex gap="gap.small" column fill vAlign="stretch" space="around" >
-              <CardHeader>
-                <Text content="Create A New Referral" weight="bold" size="large" align="center" />
-              </CardHeader>
-              <Divider />
+
+              <div className="card-head">
+                Create a New Referral
+              </div>
+
               <CardBody>
+
                 <div className="info-content">
-                  Create&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Save&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Refer
-                </div>
-                <br />
-                <br />
-                <br />
-                <br />
-                <div className="info-button">
-                  <Button secondary icon={<MeetingNewIcon />} content="Create Refer"
-                    onClick={() => scrollToSmoothly(document.getElementById("create-refer").offsetTop, 500)}
-                  />
+                  <Divider />
+                  <br />
+                  <MeetingNewIcon />&nbsp;&nbsp; Referring your friends just 2 clicks away
                 </div>
 
               </CardBody>
@@ -308,27 +342,22 @@ export function Design() {
         >
           <Card aria-roledescription="card avatar"
             elevated
-
+            onClick={() => window.location.href = "/Saved-Profiles"}
             inverted
             className="Cards"
-            style={{ backgroundColor: "#fcfcfc", width: "80%", marginLeft: "10px" }}>
+            style={{ backgroundColor: "#fcfcfc", width: "70%", marginLeft: "40px" }}>
             <Flex gap="gap.small" column fill vAlign="stretch" space="around" >
-              <CardHeader>
-                <Text content="Refer Again" weight="bold" size="large" align="center" />
-              </CardHeader>
-              <Divider />
+
+              <div className="card-head">
+                Refer from Saved Profiles
+              </div>
+
               <CardBody>
+
                 <div className="info-content">
-                  Review&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Update&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Refer
-                </div>
-                <br />
-                <br />
-                <br />
-                <br />
-                <div className="info-button">
-                  <Button secondary icon={<AttendeeIcon />} content="Refer Again"
-                    onClick={() => window.location.href = "/Saved-Profiles"}
-                  />
+                  <Divider />
+                  <br />
+                  <AttendeeIcon /> &nbsp;&nbsp;Review, Update or Refer Directly from saved profiles
                 </div>
               </CardBody>
 
@@ -369,24 +398,30 @@ export function Design() {
             </div>
             <br />
             <br />
+            <br />
             <Card aria-roledescription="card avatar"
               elevated
               inverted
               size='large'
               className="Cards1"
-              style={{ backgroundColor: "#fcfcfc", height: "300px", width: "70%", marginLeft: "10px", margin: "auto" }}>
+              style={{ backgroundColor: "#fcfcfc", height: "310px", width: "65%", marginLeft: "10px", margin: "auto" }}>
 
               <Flex gap="gap.small" column vAlign="stretch" space="between" >
                 <CardHeader>
                   <Text content="Upload Resume/LinkedIn" weight="bold" size="large" align="center" />
                 </CardHeader>
                 <Divider />
-                <CardBody align="center">
-
+                <CardBody>
+                  <br />
                   <small id="RandInfo" style={{ float: "right" }}>Either upload the candidate's resume or provide a link to their LinkedIn profile.</small>
 
                   <br />
-                  <FormInput htmlFor="customFile" style={{ fontFamily: "Segoe UI", margin: "auto" }} label="Upload Resume" name="file" type="file" id="uploadResume" onChange={changeHandler} className="Upload" placeholder=""></FormInput>
+                  <div class="file-input">
+                    <input name="uploadResume" type="file" id="uploadResume" onChange={changeHandler} className="uploadResume" />
+                    <label for="uploadResume">Upload Resume</label>
+                    {/* <FormInput htmlFor="customFile" icon={<FilesPdfIcon size="large" />} fluid style={{ fontFamily: "Segoe UI", margin: "auto" }} label="Upload Resume" name="file" type="file" id="uploadResume" onChange={changeHandler} className="uploadResume" placeholder=""></FormInput> */}
+                  </div>
+
                   {AlertResume
                     ? <Banner
                       title="Resume Uploaded"
@@ -427,8 +462,9 @@ export function Design() {
                     : <></>
                   }
                   <br />
+                  <br />
 
-                  <FormInput label="Upload LinkedIn Profile" type="text" id="uploadLinkedIn" placeholder="Enter profile link" fluid style={{ paddingLeft: "100px", paddingRight: "100px" }} /><br />
+                  <FormInput label="Upload LinkedIn Profile" type="text" id="uploadLinkedIn" placeholder="Enter profile link" fluid style={{ paddingRight: "100px" }} /><br />
                 </CardBody>
               </Flex>
             </Card>
@@ -454,7 +490,7 @@ export function Design() {
                   <Text content="Primary Information" weight="bold" size="large" align="center" />
                 </CardHeader>
                 <Divider />
-                <CardBody align="center">
+                <CardBody>
 
                   <FormInput label="First Name" {...FirstName.values} type="text" name="FirstName" id="FirstName" aria-describedby="First Name" placeholder="" required inline fluid /><br />
 
@@ -495,19 +531,19 @@ export function Design() {
                   <Text content="Professional Information" weight="bold" size="large" align="center" />
                 </CardHeader>
                 <Divider />
-                <CardBody align="center">
+                <CardBody>
 
                   <FormInput label="Search for Job IDs" name="Job" type="text" id="Job" aria-describedby="Search for Job IDs" placeholder="" style={{ margin: "5px 0 5px 0" }} onChange={searchJob} fluid />
                   <p id="jobValidation" style={{ fontStyle: "italic" }}></p><br />
 
-                  <label htmlFor="Position">Which job profile are you referring the candidate for?*</label>
+                  <label htmlFor="Position">Which job profile are you referring the candidate?*</label>
                   <select name="Position" id="Position" aria-describedby="Job Profile" placeholder="" required style={{ margin: "5px 0 5px 0", height: "2rem", backgroundColor: "#F3F2F1", border: "none", padding: "0.2rem 0.4rem", fontFamily: "Segoe UI", color: "#484644" }}>
                     {Profiles}
                   </select>
                   <br />
                   <br />
 
-                  <FormRadioGroup name="isEndorsed" id="isEndorsed" label="Do you endorse this person professionally and recommend them as a hire?*" vertical required defaultCheckedValue="true" items={EndorseItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
+                  <FormRadioGroup name="isEndorsed" id="isEndorsed" label="Do you endorse this person and recommend them as a hire?*" vertical required defaultCheckedValue="true" items={EndorseItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
                   <br />
 
 
@@ -538,7 +574,8 @@ export function Design() {
                 </CardHeader>
                 <Divider />
 
-                <CardBody align="center">
+                <CardBody>
+                  <br />
 
                   <label htmlFor="Relation">How do you know this person?*</label>
                   <select name="Relation" id="Relation" aria-describedby="Relation" placeholder="" style={{ margin: "5px 0 5px 0", height: "2rem", backgroundColor: "#F3F2F1", border: "none", padding: "0.2rem 0.4rem", fontFamily: "Segoe UI", color: "#484644" }}>
@@ -581,7 +618,7 @@ export function Design() {
                   <Text content="Additional Information" weight="bold" size="large" align="center" />
                 </CardHeader>
                 <Divider />
-                <CardBody align="center">
+                <CardBody >
                   <FormTextArea
                     placeholder="Max 2000 characters..."
                     {...About.values} name="About" id="About"

@@ -1,6 +1,6 @@
 import { Button, CardHeader, CardBody, Card, Flex, Text, Grid, Segment, Loader, Carousel, Header } from "@fluentui/react-northstar";
 import { Form, FormTextArea, FormInput, FormRadioGroup, Divider } from '@fluentui/react-northstar';
-import { MeetingNewIcon, AttendeeIcon } from '@fluentui/react-icons-northstar'
+import { MeetingNewIcon, AttendeeIcon, RetryIcon } from '@fluentui/react-icons-northstar'
 import React, { useState, useRef } from "react";
 import useInputState from "../../hooks/useInputState";
 import { useMsal } from "@azure/msal-react";
@@ -112,6 +112,7 @@ export function Design() {
     setAutofill(true);
 
     // Generating Id Token for the Refer API using MSAL Provider
+
     instance.acquireTokenSilent({
       ...loginRequest,
       account: accounts[0]
@@ -259,7 +260,6 @@ export function Design() {
   //Submit the form and create a Profile
 
   const sendForm = async (e) => {
-    e.preventDefault();
     if (isSubmit == true) {
 
       const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, About, Code } = e.target
@@ -288,8 +288,15 @@ export function Design() {
         })
       }).then(response => response.json())
         .then(setSaveProfile(true));
-      setisSubmit(false);
+        pageReload();
+        setisSubmit(false);
     }
+  }
+
+  // Reload the page
+
+  const pageReload = () => {
+    setTimeout(function () { location.reload(); }, 3000);
   }
 
   //Call the Refer API
@@ -335,6 +342,7 @@ export function Design() {
         console.error('Error:', error);
       });
     setReferCall(true);
+    pageReload();
   }
 
   //Smoothly Scroll down
@@ -527,7 +535,7 @@ export function Design() {
                         color: "rgb(58, 109, 78)",
                         fontWeight: "550"
                       }}
-                      visibleTime={150000}
+                      visibleTime={1500}
                     />
                     : <></>
                   }
@@ -770,6 +778,8 @@ export function Design() {
               <Button onClick={changeSubmit} secondary>Save Profile</Button>
               &nbsp;&nbsp;&nbsp;&nbsp;
               <Button primary onClick={handleClickEvent}>Save & Submit</Button>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <Button type="button" circular icon={<RetryIcon />} onClick={() => window.location.reload(false)} title="Reload" />
               {saveProfile
                 ? <Banner
                   title="Profile Saved"
@@ -794,7 +804,7 @@ export function Design() {
                     height: "30px",
                     width: "12rem",
                     position: "absolute",
-                    right: "25%",
+                    right: "23%",
                     color: "rgb(58, 109, 78)",
                     fontWeight: "550"
                   }}
@@ -803,7 +813,6 @@ export function Design() {
                 : <></>
               }
             </div>
-
           </Segment>
 
 

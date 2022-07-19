@@ -137,11 +137,12 @@ export const FormsDirect = (props) => {
                     height: "30px",
                     width: "12rem",
                     position: "absolute",
-                    color: "green",
                     bottom:"1.5rem",
-                    left: "9rem"
+                    left: "9rem",
+                    color: "rgb(58, 109, 78)",
+                    fontWeight: "550"
                   }}
-                  visibleTime={15000}
+                  visibleTime={1500}
                 />
                 : <></>
               }

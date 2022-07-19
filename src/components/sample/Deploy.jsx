@@ -8,9 +8,12 @@ import "./Deploy.css";
 
 export function Deploy() {
 
+  // Initialize hooks
+
   const [users, setUser] = useState([]);
 
-
+  // Fill saved profiles table
+  
   const fetchData = () => {
     fetch("https://referralprofilesv2-api.azure-api.net/v1/profiles")
       .then((response) => {

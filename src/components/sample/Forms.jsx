@@ -126,8 +126,6 @@ export const Forms = (props) => {
         const jobId = form['Job'].value;
         console.log(jobId);
 
-
-
         var bearer = 'Bearer ' + token;
         var url = 'https://hrgtareferservicedev.azurewebsites.net/v2/job/' + jobId;
 
@@ -296,8 +294,7 @@ export const Forms = (props) => {
                 <Button type="submit" secondary style={{ width: "9rem", float: "right", margin: "0px 5px" }}>Save Profile</Button>
             </div>
             <div>
-                {/* {saveProfile */}
-                {true
+                {saveProfile
                     ? <Banner
                         title="Profile Saved"
                         css={{
@@ -306,7 +303,8 @@ export const Forms = (props) => {
                             width: "10rem",
                             position: "absolute",
                             right: "2rem",
-                            color: "green"
+                            color: "rgb(58, 109, 78)",
+                            fontWeight: "550"
                         }}
                         visibleTime={1500}
                     />

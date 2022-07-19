@@ -1,6 +1,6 @@
 import { Button, CardHeader, CardBody, Card, Flex, Text, Grid, Segment, Loader, Carousel, Header } from "@fluentui/react-northstar";
 import { Form, FormTextArea, FormInput, FormRadioGroup, Divider } from '@fluentui/react-northstar';
-import { MeetingNewIcon, AttendeeIcon, RetryIcon } from '@fluentui/react-icons-northstar'
+import { MeetingNewIcon, AttendeeIcon, RetryIcon, ArrowUpIcon } from '@fluentui/react-icons-northstar'
 import React, { useState, useRef } from "react";
 import useInputState from "../../hooks/useInputState";
 import { useMsal } from "@azure/msal-react";
@@ -288,8 +288,8 @@ export function Design() {
         })
       }).then(response => response.json())
         .then(setSaveProfile(true));
-        pageReload();
-        setisSubmit(false);
+      pageReload();
+      setisSubmit(false);
     }
   }
 
@@ -407,6 +407,7 @@ export function Design() {
             elevated
             inverted
             className="Cards"
+            id="top-card"
             style={{ backgroundColor: "#fcfcfc", width: "70%", float: "right", marginRight: "40px" }}
             onClick={() => scrollToSmoothly(document.getElementById("create-refer").offsetTop, 500)}>
 
@@ -775,11 +776,13 @@ export function Design() {
             }}
           >
             <div style={{ display: "flex", justifyContent: "center" }}>
+              <Button type="button" circular icon={<RetryIcon />} onClick={() => window.location.reload(false)} title="Reload" />
+              &nbsp;&nbsp;&nbsp;&nbsp;
               <Button onClick={changeSubmit} secondary>Save Profile</Button>
               &nbsp;&nbsp;&nbsp;&nbsp;
               <Button primary onClick={handleClickEvent}>Save & Submit</Button>
               &nbsp;&nbsp;&nbsp;&nbsp;
-              <Button type="button" circular icon={<RetryIcon />} onClick={() => window.location.reload(false)} title="Reload" />
+              <Button type="button" circular icon={<ArrowUpIcon />} onClick={() => scrollToSmoothly(document.getElementById("top-card").offsetTop, 500)} title="Go to the top" />
               {saveProfile
                 ? <Banner
                   title="Profile Saved"

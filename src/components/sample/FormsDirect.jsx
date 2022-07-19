@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import { profiles } from "./Data/profiles";
 import { Button, Text, Form, Input, FormField, FormLabel, FormMessage, FormTextArea, FormInput, FormRadioGroup, Divider, Alert } from '@fluentui/react-northstar';
 import Banner from 'react-js-banner';
@@ -74,7 +74,7 @@ export const FormsDirect = (props) => {
         formData.append('campaignCode', props.item.code);
         formData.append('isUniversityStudent', props.item.isUniversity);
         formData.append('isEndorsed', props.item.isEndorsed);
-        formData.append('resumeFile', "");
+        formData.append('resumeUri', props.item.resumeUri);
 
 
         instance.acquireTokenSilent({
@@ -133,7 +133,7 @@ export const FormsDirect = (props) => {
                     bottom:"1.5rem",
                     left: "9rem"
                   }}
-                  visibleTime={15000}
+                  visibleTime={1500}
                 />
                 : <></>
               }

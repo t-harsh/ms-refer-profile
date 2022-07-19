@@ -45,7 +45,7 @@ const ProfileContent2 = () => {
     const { instance, accounts } = useMsal();
     return (
         <>
-            <p className="card-title">Welcome <b> {accounts[0].name} </b> to the MS Referral!</p>
+            <p className="card-title">&nbsp;Welcome <b style={{color:"#444791", fontFamily:"Segoe UI"}}> {accounts[0].name} </b> to the MS Referral!</p>
         </>
     );
 };

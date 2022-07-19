@@ -60,7 +60,7 @@ export function Deploy() {
                     content={<FormsDirect item={item} />}
                     cancelButton="Cancel"
                     header="Refer Directly"
-                    trigger={<Button circular icon={<LightningIcon />} title="Refer Directly" />}
+                    trigger={<Button circular icon={<LightningIcon />} title="Refer Now" />}
                   /></td>
                 </tr>
               )

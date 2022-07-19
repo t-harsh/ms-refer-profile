@@ -1,7 +1,6 @@
-import { Button, CardHeader, CardBody, Card, Flex, Text, Grid, Segment, Loader, Alert, Attachment } from "@fluentui/react-northstar";
-import { Form, Input, FormField, FormLabel, FormMessage, FormTextArea, FormInput, FormDropdown, FormRadioGroup, Divider, Avatar } from '@fluentui/react-northstar';
-import { ApprovalsAppbarIcon, BookmarkIcon, ContactCardIcon, CallControlPresentNewIcon, AcceptIcon, MeetingNewIcon, AttendeeIcon, FilesPdfIcon } from '@fluentui/react-icons-northstar'
-import { ResumeParse } from "./resume";
+import { Button, CardHeader, CardBody, Card, Flex, Text, Grid, Segment, Loader, Carousel, Header } from "@fluentui/react-northstar";
+import { Form, FormTextArea, FormInput, FormRadioGroup, Divider } from '@fluentui/react-northstar';
+import { MeetingNewIcon, AttendeeIcon } from '@fluentui/react-icons-northstar'
 import React, { useState, useRef } from "react";
 import useInputState from "../../hooks/useInputState";
 import { useMsal } from "@azure/msal-react";
@@ -12,9 +11,12 @@ import { profiles } from "./Data/profiles";
 import { MainContent } from "./../../App";
 import "./Design.css";
 import Banner from 'react-js-banner';
-import { useEffect } from "react";
+import "./Carousel.css";
+import { AffindaCredential, AffindaAPI } from "@affinda/affinda";
 
 export function Design() {
+
+  //Initializing hooks
 
   const { instance, accounts } = useMsal();
   const [token, setToken] = useState();
@@ -26,6 +28,12 @@ export function Design() {
   const [AlertResume, setAlertResume] = useState(false);
   const [saveProfile, setSaveProfile] = useState(false);
   const [referCall, setReferCall] = useState(false);
+  const [selectedisEndorsed, setisEndorsed] = useState(true);
+  const [selectedisUniversity, setisUniversity] = useState(true);
+  const [isSubmit, setisSubmit] = useState(false);
+  const [recommendedJobs, setRecommendedJobs] = useState(null);
+
+  // Initializing useInputState hook
 
   const FirstName = useInputState();
   const LastName = useInputState();
@@ -34,6 +42,8 @@ export function Design() {
   const Location = useInputState();
   const About = useInputState();
   const Job = useInputState();
+
+  //Drop down items
 
   let locationCountryCodes = locations();
   let Locations = locationCountryCodes.map((location) =>
@@ -45,6 +55,8 @@ export function Design() {
   let Profiles = profilesData.map((profile) =>
     <option value={profile.key}>{profile.text}</option>
   );
+
+  //Radio Button items
 
   const EndorseItems = [
     {
@@ -77,119 +89,225 @@ export function Design() {
   ]
 
 
+  var skills = '';
+
+  //Generate guid id for Resume
+
+  function generateGuid() {
+    return Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
+  }
+
+  const credential = new AffindaCredential("11c48462d4df64e057ef2ce45fc5e07dcb3977b2");
+  const client = new AffindaAPI(credential);
+
+
+  // Upload Resume Functions
+
   const changeHandler = async (event) => {
 
     setAlertResume(true);
     setAutofill(true);
-    const target = event.target;
-    setSelectedFile(target.files[0]);
-    const result = await ResumeParse(selectedFile)
-    console.log(result);
 
-    if (result) {
+    //Calling Affinda API and parsing resume
+
+    client.createResume({ file: event.target.files[0] }).then((result) => {
+      console.log("Returned data:");
+      console.dir(result);
+
+      //Autofilling
+
       FirstName.handleSet(result.data?.name?.first);
       LastName.handleSet(result.data?.name?.last);
       InputEmail.handleSet(result.data?.emails?.[0]);
       MobileNo.handleSet(result.data?.phoneNumbers?.[0]);
       About.handleSet(result.data?.profession);
-    }
+      result.data?.skills.map((item) => {
+        skills = skills + ',' + item.name;
+      });
+      skills = skills.substring(1);
+      skills = "\"" + skills + "\"";
+      getRecommendedJobs(skills);
+
+    }).catch((err) => {
+      console.log("An error occurred:");
+      console.error(err);
+    });
+
+    const target = event.target;
+    setSelectedFile(target.files[0]);
+
     setAutofill(false);
     setAutofillComplete(true);
   };
 
+  //Get Recommended Job based on skills in resume
+
+  const getRecommendedJobs = (skills) => {
+
+    //Temporary Access Token for the Recommendations API
+    const bearer = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjJaUXBKM1VwYmpBWVhZR2FYRUpsOGxWMFRPSSJ9.eyJhdWQiOiJmNTEwNzM1YS02YzlhLTQ1NDEtODgyOC03YWQyN2QyOTg5NzYiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vNzJmOTg4YmYtODZmMS00MWFmLTkxYWItMmQ3Y2QwMTFkYjQ3L3YyLjAiLCJpYXQiOjE2NTgxODk5NjEsIm5iZiI6MTY1ODE4OTk2MSwiZXhwIjoxNjU4MTk0NzU2LCJhaW8iOiJBWFFBaS84VEFBQUFwMEJnQWdLdCtvS1hNOWpaUUN0RlUyY3pob0lhVElLMXJ5bkQ4cEh1SldwWWdGUkMzYWlaTDFyOUdrazNEV3NNK25hZDB0ZXB5VlBFV0dkQmxSTG5vem9BZEtKaFE3MHQwT1djWnYwczkveUFOQWFQM1VHL3BtTkdDazBQenR1Q3hBbUtGWnVzT0RMdDR3SVZoMElsdVE9PSIsImF6cCI6ImY1MTA3MzVhLTZjOWEtNDU0MS04ODI4LTdhZDI3ZDI5ODk3NiIsImF6cGFjciI6IjAiLCJuYW1lIjoiSGFyc2ggU2hyaXZhc3RhdmEiLCJvaWQiOiI4ZWNhYzIwZi04MDE1LTRjNmQtOTk3NC03NTMwNDMyZTQ0ZjQiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0LWhhcnNoc2hAbWljcm9zb2Z0LmNvbSIsInJoIjoiMC5BUUVBdjRqNWN2R0dyMEdScXkxODBCSGJSMXB6RVBXYWJFRkZpQ2g2MG4wcGlYWWFBTmMuIiwic2NwIjoiRGlyZWN0b3J5LlJlYWQuQWxsIFVzZXIuUmVhZCBVc2VyLlJlYWQuQWxsIFVzZXIuUmVhZEJhc2ljLkFsbCIsInN1YiI6IjFVREpNMktiTjNDT1V3WjQ4Rmx6Q1NZZU81WXFPOExJVEViMDdzbXpYTzQiLCJ0aWQiOiI3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDciLCJ1cG4iOiJ0LWhhcnNoc2hAbWljcm9zb2Z0LmNvbSIsInV0aSI6IkFZYXZKc0Uxd0VtWjVmMmJLeEVCQUEiLCJ2ZXIiOiIyLjAifQ.AaDAOIUY7Y4_NcU8L5aRRgl-WiY83ywxynbDAcL5yeCasEUvZmy95yRh475D4Gecl3LQtd6tpgBBrIHOVA3fSbCiE07T7xnCut83KNisMYoEWR1ddcMG-vTigU6-bxgXER1V_bbxv8AJ3Rq259UrAC9b-3Z7-B6gY1LyvLhRGh2lCD1lxmUCQGAwh31ZIibOm88r2kXLcOoICOR7XfgsbL_1ainENtY6JZ_yisnxsUu4QRjTrj411VvOHXoI4-ePFioVGU-18kKCPnq9S5J6ljEs8D925sxtRretXf2w0FM4Mx2f_eWpGns93tBsAqmn-_oQw1xCPFJSPQhuTFQmmA";
+    console.log("here = ", skills);
+
+    fetch('https://msrecruitdev.microsoft.com/interviewservice/v1/TM/jobRecommendationsBySkills', {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': bearer
+      },
+      method: 'POST',
+      body: skills,
+    }).then(response => response.json())
+      .then(data => setRecommendedJobs(data));
+    console.log("Recommended jobs = ", recommendedJobs);
+
+  }
+
+  //Job Recommendation Carousel
+
+  function JobCarousel() {
+
+    const tabAriaLabel = {
+      job1: 'job1',
+      job2: 'job2',
+      job3: 'job3'
+    }
+
+    // Fill Job input Field
+
+    const fillRecommendedJob = (item) => {
+      Job.handleSet(item.externalJobOpeningId);
+      // document.getElementById("jobValidation").innerHTML = item.externalJobOpeningId + " - " + result.jobTitle;
+    }
+
+
+    const carouselItems = recommendedJobs.map((item) => ({
+
+      key: 'Recommended Job',
+      id: 'Recommended Job',
+      content: (
+        <div>
+
+          <Text>
+            <Header style={{ fontSize: "17px" }} align="center" > {item.jobTitle} </Header>
+            <Divider />
+            <p><b>Location :</b> {item.jobLocation.City} , {item.jobLocation.State} </p>
+            <div style={{ display: "inline-flex" }}>
+              <p><b>Job Id :</b> {item.externalJobOpeningId} </p>
+              <Button style={{ left: "50%" }} type="button" onClick={
+                () => fillRecommendedJob(item)
+              }>Select</Button>
+            </div>
+          </Text>
+
+        </div>
+      ),
+      'aria-label': 'Recommendation card',
+    })
+
+    )
+
+    return (
+      <Carousel
+        className="carouselCard"
+        navigation={{
+          'aria-label': 'Job cards',
+          type: Button,
+          items: carouselItems.map((item, index) => ({
+            key: item.id,
+            'aria-label': tabAriaLabel[item.id],
+            'aria-controls': item.id,
+          })),
+        }}
+        items={carouselItems}
+        getItemPositionText={(index, size) => `${index + 1} of ${size}`}
+      />
+    )
+  }
+
+  //Radio button field inputs
+
+  const isEndorsed = true;
+  const changeisEndorsed = () => {
+    isEndorsed = !isEndorsed;
+    setisEndorsed(isEndorsed);
+  }
+
+  const isUniversity = true;
+  const changeisUniversity = () => {
+    isUniversity = !isUniversity;
+    setisUniversity(isUniversity);
+  }
+
+  //To prevent other button clicks to submit form
+
+  const changeSubmit = () => {
+    setisSubmit(true);
+  }
+
+  //Submit the form and create a Profile
 
   const sendForm = async (e) => {
     e.preventDefault();
+    if (isSubmit == true) {
 
-    const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, isEndorsed, isUniversity, About, Code } = e.target
+      const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, About, Code } = e.target
 
-    console.log(FirstName.value);
-    console.log(LastName.value);
-    console.log(About.value);
+      const ResumeUri = generateGuid();
 
 
-    let form = profileForm.current;
-    console.log(`${form['FirstName'].value} ${form['LastName'].value}`)
+      await fetch('https://referralprofilesv2-api.azure-api.net/v1/profiles/create', {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        mode: 'cors',
+        body: JSON.stringify({
+          firstName: FirstName?.value,
+          lastName: LastName?.value,
+          emailId: InputEmail?.value,
+          mobileNo: MobileNo?.value,
+          location: Location?.value,
+          relation: Relation?.value,
+          code: Code?.value,
+          isEndorsed: selectedisEndorsed.toString(),
+          isUniversity: selectedisUniversity.toString(),
+          resumeUri: ResumeUri
 
-    let formData = new FormData();
-    if (selectedFile) {
-      formData.append('firstName',FirstName.value );
-      formData.append('lastName', LastName.value);
-      formData.append('candidateEmail', InputEmail.value);
-      formData.append('location', Location.value);
-      formData.append('profile', Position.value);
-      formData.append('acquaintanceLevel', Relation.value);
-      formData.append('isEndorsed', true);
-      formData.append('additionalInformation', About.value);
-      formData.append('campaignCode', Code.value);
-      formData.append('isUniversityStudent', true);
-      formData.append('resumeFile', selectedFile);
-      
+        })
+      }).then(response => response.json())
+        .then(setSaveProfile(true));
+      setisSubmit(false);
     }
-    
-    console.log("Form-data : " , formData);
-
-    await fetch('https://localhost:7119/upload', {
-      method: 'POST',
-      mode: 'cors',
-      body: formData,
-    }).then((response) => response.json())
-      .then((result) => {
-        console.log('Success:', result);
-        setSaveProfile(true);
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
   }
 
-  //   await fetch('https://referralprofilesv2-api.azure-api.net/v1/profiles/create', {
-  //     headers: {
-  //       // 'Accept': 'application/json',
-  //       'Content-Type': 'application/json',
-  //     },
-  //     method: 'POST',
-  //     mode: 'cors',
-  //     body: JSON.stringify({
-        // firstName: FirstName.value,
-        // lastName: LastName.value,
-        // emailId: InputEmail.value,
-        // mobileNo: MobileNo.value,
-        // location: Location.value,
-        // relation: Relation.value,
-        // exampleRadios1: true,
-        // exampleRadios2: true,
-        // about: About.value,
-        // code: Code.value
-  //     })
-  //   })
-  //   setSaveProfile(true);
-  // }
+  //Call the Refer API
 
   const handleClickEvent = () => {
+    setisSubmit(true);
     let form = profileForm.current;
-    console.log(`${form['FirstName'].value} ${form['LastName'].value}`)
+    const ResumeUri = generateGuid();
     const formData = new FormData();
     if (selectedFile) {
-      formData.append('firstName', (form['FirstName'].value).toString());
-      formData.append('lastName', (form['LastName'].value).toString());
-      formData.append('candidateEmail', (form['InputEmail'].value).toString());
+      formData.append('firstName', form['FirstName'].value);
+      formData.append('lastName', form['LastName'].value);
+      formData.append('candidateEmail', form['InputEmail'].value);
+      formData.append('candidatePhone', form['MobileNo'].value);
       formData.append('location', form['Location'].value);
-      formData.append('profile', (form['Position'].value).toString());
+      formData.append('profile', form['Position'].value);
       formData.append('acquaintanceLevel', form['Relation'].value);
-      formData.append('isEndorsed', form['isEndorsed'].value);
-      formData.append('isUniversityStudent', form['isUniversity'].value);
-      formData.append('additionalInformation', (form['About'].value).toString());
-      formData.append('campaignCode', (form['Code'].value).toString());
-      formData.append('isUniversityStudent', 'true');
+      formData.append('isEndorsed', selectedisEndorsed.toString());
+      formData.append('isUniversityStudent', selectedisUniversity.toString());
+      formData.append('additionalInformation', form['About'].value);
+      formData.append('campaignCode', form['Code'].value);
       formData.append('resumeFile', selectedFile);
+      formData.append('resumeUri', ResumeUri);
     }
 
     instance.acquireTokenSilent({
       ...loginRequest,
       account: accounts[0]
     }).then((response) => {
-      // console.log("Token = " + token);
+      console.log("Access Token = " + response.accessToken);
       setToken(response.idToken);
     });
 
@@ -199,7 +317,6 @@ export function Design() {
     fetch('https://hrgtareferservicedev.azurewebsites.net/v2/refer', {
       method: 'POST',
       headers: {
-        // 'Content-Type': 'multipart/form-data',
         'Authorization': bearer
       },
       mode: 'cors',
@@ -214,42 +331,7 @@ export function Design() {
     setReferCall(true);
   }
 
-  const searchJob = () => {
-    const form = profileForm.current;
-    const jobId = form['Job'].value;
-    console.log(jobId);
-
-    instance.acquireTokenSilent({
-      ...loginRequest,
-      account: accounts[0]
-    }).then((response) => {
-      setToken(response.idToken);
-    });
-
-    var bearer = 'Bearer ' + token;
-    var url = 'https://hrgtareferservicedev.azurewebsites.net/v2/job/' + jobId;
-
-    fetch(url, {
-      headers: {
-        'Accept': 'text/plain',
-        'Content-Type': 'application/json',
-        'Authorization': bearer
-      },
-      method: 'GET',
-      mode: 'cors'
-    }).then((response) => response.json())
-      .then((result) => {
-        console.log('Success:', result);
-        setSelectedJob(true);
-        document.getElementById("jobValidation").style.color = "green";
-        document.getElementById("jobValidation").innerHTML = result.jobId + " - " + result.jobRoleName;
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-        document.getElementById("jobValidation").style.color = "red";
-        document.getElementById("jobValidation").innerHTML = "No such Job Id exists";
-      });
-  }
+  //Smoothly Scroll down
 
   function scrollToSmoothly(pos, time) {
     var currentPos = window.pageYOffset;
@@ -272,10 +354,14 @@ export function Design() {
     });
   }
 
+  //Focus to an input field
+
   function jobScrollFocus() {
     scrollToSmoothly(document.getElementById("ProfessionalCard").offsetTop, 1500);
     document.getElementById("Job").focus();
   }
+
+  // Use focus function 
 
   {
     selectedAutofillComplete
@@ -379,11 +465,12 @@ export function Design() {
 
 
       <Form onSubmit={(e) => { sendForm(e) }} ref={profileForm}>
-        <Grid columns="repeat(4, 1fr)" rows="550px 470px 100px" >
+        <Grid columns="repeat(4, 1fr)" rows="550px 480px 100px" >
 
           <Segment
             inverted
             styles={{
+
               gridColumn: 'span 4',
               backgroundColor: "rgba(155, 155, 155, 0)",
               boxShadow: 'none'
@@ -406,7 +493,7 @@ export function Design() {
               className="Cards1"
               style={{ backgroundColor: "#fcfcfc", height: "310px", width: "65%", marginLeft: "10px", margin: "auto" }}>
 
-              <Flex gap="gap.small" column vAlign="stretch" space="between" >
+              <Flex gap="gap.small" column vAlign="stretch" space="between" align="center">
                 <CardHeader>
                   <Text content="Upload Resume/LinkedIn" weight="bold" size="large" align="center" />
                 </CardHeader>
@@ -419,7 +506,6 @@ export function Design() {
                   <div class="file-input">
                     <input name="uploadResume" type="file" id="uploadResume" onChange={changeHandler} className="uploadResume" />
                     <label for="uploadResume">Upload Resume</label>
-                    {/* <FormInput htmlFor="customFile" icon={<FilesPdfIcon size="large" />} fluid style={{ fontFamily: "Segoe UI", margin: "auto" }} label="Upload Resume" name="file" type="file" id="uploadResume" onChange={changeHandler} className="uploadResume" placeholder=""></FormInput> */}
                   </div>
 
                   {AlertResume
@@ -464,7 +550,7 @@ export function Design() {
                   <br />
                   <br />
 
-                  <FormInput label="Upload LinkedIn Profile" type="text" id="uploadLinkedIn" placeholder="Enter profile link" fluid style={{ paddingRight: "100px" }} /><br />
+                  <FormInput label="Upload LinkedIn Profile" type="text" id="uploadLinkedIn" placeholder="Enter profile link" fluid style={{ paddingLeft: "100px", paddingRight: "100px" }} /><br />
                 </CardBody>
               </Flex>
             </Card>
@@ -485,7 +571,7 @@ export function Design() {
               className="Cards1"
               style={{ backgroundColor: "#fcfcfc", margin: "auto" }}>
 
-              <Flex gap="gap.small" column fill vAlign="stretch" space="around" >
+              <Flex gap="gap.small" column vAlign="stretch" space="around" >
                 <CardHeader>
                   <Text content="Primary Information" weight="bold" size="large" align="center" />
                 </CardHeader>
@@ -526,25 +612,28 @@ export function Design() {
               className="Cards1"
               style={{ backgroundColor: "#fcfcfc", margin: "auto" }}>
 
-              <Flex gap="gap.small" column fill vAlign="stretch" space="around" >
+              <Flex gap="gap.small" column vAlign="stretch" space="around" >
                 <CardHeader>
                   <Text content="Professional Information" weight="bold" size="large" align="center" />
                 </CardHeader>
                 <Divider />
                 <CardBody>
 
-                  <FormInput label="Search for Job IDs" name="Job" type="text" id="Job" aria-describedby="Search for Job IDs" placeholder="" style={{ margin: "5px 0 5px 0" }} onChange={searchJob} fluid />
-                  <p id="jobValidation" style={{ fontStyle: "italic" }}></p><br />
-
-                  <label htmlFor="Position">Which job profile are you referring the candidate?*</label>
+                  <label htmlFor="Position">Job Profile*</label>
                   <select name="Position" id="Position" aria-describedby="Job Profile" placeholder="" required style={{ margin: "5px 0 5px 0", height: "2rem", backgroundColor: "#F3F2F1", border: "none", padding: "0.2rem 0.4rem", fontFamily: "Segoe UI", color: "#484644" }}>
                     {Profiles}
                   </select>
                   <br />
-                  <br />
 
-                  <FormRadioGroup name="isEndorsed" id="isEndorsed" label="Do you endorse this person and recommend them as a hire?*" vertical required defaultCheckedValue="true" items={EndorseItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
-                  <br />
+                  <FormInput label="Search for Job IDs" {...Job.values} name="Job" type="text" id="Job" aria-describedby="Search for Job IDs" placeholder="" style={{ margin: "5px 0 5px 0" }} fluid />
+                  <p id="jobValidation" style={{ fontStyle: "italic", color: "green" }}></p>
+
+                  <div >Job Recommendations :</div>
+                  {recommendedJobs
+                    ? <JobCarousel />
+                    : <Loader style={{marginTop:"50px"}}/>
+                  }
+
 
 
                 </CardBody>
@@ -568,14 +657,14 @@ export function Design() {
               className="Cards1"
               style={{ backgroundColor: "#fcfcfc", margin: "auto" }}>
 
-              <Flex gap="gap.small" column fill vAlign="stretch" space="between" >
+              <Flex gap="gap.small" column vAlign="stretch" space="between" >
                 <CardHeader>
                   <Text content="Secondary Information" weight="bold" size="large" align="center" />
                 </CardHeader>
                 <Divider />
 
                 <CardBody>
-                  <br />
+
 
                   <label htmlFor="Relation">How do you know this person?*</label>
                   <select name="Relation" id="Relation" aria-describedby="Relation" placeholder="" style={{ margin: "5px 0 5px 0", height: "2rem", backgroundColor: "#F3F2F1", border: "none", padding: "0.2rem 0.4rem", fontFamily: "Segoe UI", color: "#484644" }}>
@@ -585,12 +674,15 @@ export function Design() {
                     <option value={4}>I have worked with this person before</option>
                   </select>
                   <br />
+
+
+
+                  <FormRadioGroup name="isUniversity" id="isUniversity" label="Is your referral a current university student or recent graduate (within last 12 months)?*" vertical required defaultCheckedValue="true" onChange={changeisUniversity} items={UnivItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
                   <br />
 
-                  <FormRadioGroup name="isUniversity" id="isUniversity" label="Is your referral a current university student or recent graduate (within last 12 months)?*" vertical required defaultCheckedValue="true" items={UnivItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
-                  <div>
-                    <br /><br /><br /><br /><br /><br />
-                  </div>
+
+                  <FormRadioGroup name="isEndorsed" id="isEndorsed" label="Do you endorse this person and recommend them as a hire?*" vertical required defaultCheckedValue="true" items={EndorseItems} onChange={changeisEndorsed} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
+
                 </CardBody>
               </Flex>
             </Card>
@@ -613,11 +705,12 @@ export function Design() {
               className="Cards1"
               style={{ backgroundColor: "#fcfcfc", margin: "auto", right: "10px" }}>
 
-              <Flex gap="gap.small" column fill vAlign="stretch" space="around" >
+              <Flex gap="gap.small" column vAlign="stretch" space="around" >
                 <CardHeader>
                   <Text content="Additional Information" weight="bold" size="large" align="center" />
                 </CardHeader>
                 <Divider />
+                <br />
                 <CardBody >
                   <FormTextArea
                     placeholder="Max 2000 characters..."
@@ -649,7 +742,7 @@ export function Design() {
             }}
           >
             <div style={{ display: "flex", justifyContent: "center" }}>
-              <Button type="submit" secondary>Save Profile</Button>
+              <Button onClick={changeSubmit} secondary>Save Profile</Button>
               &nbsp;&nbsp;&nbsp;&nbsp;
               <Button primary onClick={handleClickEvent}>Save & Submit</Button>
               {saveProfile

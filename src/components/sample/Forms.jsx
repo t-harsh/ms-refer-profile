@@ -26,6 +26,8 @@ export const Forms = (props) => {
     const [saveProfile, setSaveProfile] = useState(false);
     const [selectedJob, setSelectedJob] = useState(false);
     const [referCall, setReferCall] = useState(false);
+    const [selectedisEndorsed, setisEndorsed] = useState(true);
+    const [selectedisUniversity, setisUniversity] = useState(true);
 
 
     let locationCountryCodes = locations();
@@ -68,6 +70,18 @@ export const Forms = (props) => {
             value: 'false',
         }
     ]
+
+    const isEndorsed = true;
+    const changeisEndorsed = () => {
+        isEndorsed = !isEndorsed;
+        setisEndorsed(isEndorsed);
+    }
+
+    const isUniversity = true;
+    const changeisUniversity = () => {
+        isUniversity = !isUniversity;
+        setisUniversity(isUniversity);
+    }
 
     const fillData = () => {
         FirstName.handleSet(props.item.firstName);
@@ -125,17 +139,20 @@ export const Forms = (props) => {
 
     const sendForm = async (e) => {
         e.preventDefault();
-        const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, isEndorsed, isUniversity, About, Code } = e.target
+        const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, About, Code } = e.target
 
         console.log(FirstName.value);
         console.log(LastName.value);
 
         const profileId = (props.item?.profileId)?.toString();
 
+        const ResumeUri = props.item?.resumeUri;
+
         var url = 'https://referralprofilesv2-api.azure-api.net/v1/profiles/'
 
         url = url + profileId;
 
+        console.log(url);
         await fetch(url, {
             headers: {
                 'Accept': 'application/json',
@@ -150,8 +167,8 @@ export const Forms = (props) => {
                 mobileNo: MobileNo.value,
                 location: Location.value,
                 relation: Relation.value,
-                exampleRadios1: isEndorsed.value,
-                exampleRadios2: isUniversity.value,
+                isEndorsed: selectedisEndorsed.toString(),
+                isUniversity: selectedisUniversity.toString(),
                 about: About.value,
                 code: Code.value
             })
@@ -172,9 +189,9 @@ export const Forms = (props) => {
         formData.append('acquaintanceLevel', form['Relation'].value);
         formData.append('additionalInformation', form['About'].value);
         formData.append('campaignCode', form['Code'].value);
-        formData.append('isUniversityStudent', form['isUniversity'].value);
-        formData.append('isEndorsed', form['isEndorsed'].value);
-        formData.append('resumeFile', "");
+        formData.append('isEndorsed', selectedisEndorsed.toString());
+        formData.append('isUniversityStudent', selectedisUniversity.toString());
+        formData.append('resumeUri', ResumeUri);
 
 
         instance.acquireTokenSilent({
@@ -191,7 +208,6 @@ export const Forms = (props) => {
         fetch('https://hrgtareferservicedev.azurewebsites.net/v2/refer', {
             method: 'POST',
             headers: {
-                // 'Content-Type': 'multipart/form-data',
                 'Authorization': bearer
             },
             mode: 'cors',
@@ -224,7 +240,7 @@ export const Forms = (props) => {
                 {Locations}
             </select><br />
 
-            <FormRadioGroup name="isEndorsed" id="isEndorsed" label="Do you endorse this person professionally and recommend them as a hire?*" vertical required defaultCheckedValue="true" items={EndorseItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
+            <FormRadioGroup name="isEndorsed" id="isEndorsed" label="Do you endorse this person professionally and recommend them as a hire?*" vertical required defaultCheckedValue="true" onChange={changeisEndorsed} items={EndorseItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
 
 
             <FormInput label="Search for Job IDs" name="Job" type="text" id="Job" aria-describedby="Search for Job IDs" placeholder="Enter ID" style={{ margin: "5px 0 5px 0" }} onChange={searchJob} fluid />
@@ -243,7 +259,7 @@ export const Forms = (props) => {
                 <option value={4}>I have worked with this person before</option>
             </select><br />
 
-            <FormRadioGroup name="isUniversity" id="isUniversity" label="Is your referral a current university student or recent graduate (within last 12 months)?*" vertical required defaultCheckedValue="true" items={UnivItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
+            <FormRadioGroup name="isUniversity" id="isUniversity" label="Is your referral a current university student or recent graduate (within last 12 months)?*" vertical required defaultCheckedValue="true" onChange={changeisUniversity} items={UnivItems} style={{ fontFamily: "Segoe UI", color: "#484644" }} />
 
             <FormTextArea
                 placeholder="Max 2000 characters..."
@@ -268,7 +284,7 @@ export const Forms = (props) => {
                             height: "30px",
                             width: "10rem",
                             position: "absolute",
-                            right:"2rem",
+                            right: "2rem",
                             color: "green"
                         }}
                         visibleTime={1500}

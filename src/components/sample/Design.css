@@ -21,17 +21,17 @@
 .card-head {
     font-family: 'Segoe UI';
     font-style: normal;
-    color: #535353;
+    color: #000000;
     font-size: 27px;
     text-align: center;
-    font-weight: 600;
+    font-weight: 620;
     margin-top: 2.5rem;
 }
 
 .info-content {
     font-family: 'Segoe UI';
     font-style: normal;
-    color: #656464;
+    color: #444791;
     font-size: 15px;
     text-align: center;
     font-weight: 500;
@@ -43,11 +43,17 @@
     justify-content: center;
 }
 
+.glow {
+    color: #6366bd;
+    font-weight: 500;
+    font-style: oblique;
+}
+
 .heading {
-    font-family: serif;
-    font-style: italic;
-    color: #444791;
-    font-size: 20px;
+    font-family: "Segoe UI";
+    font-style: normal;
+    color: #484644;
+    font-size: 18px;
     font-weight: 700px;
     position: absolute;
     left: 48%;

@@ -13,6 +13,8 @@ import Banner from 'react-js-banner';
 
 export const Forms = (props) => {
 
+    //hooks initialization
+
     const profileForm = useRef(null);
     const FirstName = useInputState();
     const LastName = useInputState();
@@ -22,13 +24,14 @@ export const Forms = (props) => {
     const About = useInputState();
     const Code = useInputState();
     const { instance, accounts } = useMsal();
-    const [token, setToken] = useState();
+    const [token, setToken] = useState("");
     const [saveProfile, setSaveProfile] = useState(false);
     const [selectedJob, setSelectedJob] = useState(false);
     const [referCall, setReferCall] = useState(false);
     const [selectedisEndorsed, setisEndorsed] = useState(true);
     const [selectedisUniversity, setisUniversity] = useState(true);
 
+    //Dropdown values 
 
     let locationCountryCodes = locations();
     let Locations = locationCountryCodes.map((location) =>
@@ -40,6 +43,8 @@ export const Forms = (props) => {
     let Profiles = profilesData.map((profile) =>
         <option value={profile.key}>{profile.text}</option>
     );
+
+    // Radio group Values
 
     const EndorseItems = [
         {
@@ -71,6 +76,8 @@ export const Forms = (props) => {
         }
     ]
 
+    // Radio Group selection
+
     const isEndorsed = true;
     const changeisEndorsed = () => {
         isEndorsed = !isEndorsed;
@@ -83,7 +90,18 @@ export const Forms = (props) => {
         setisUniversity(isUniversity);
     }
 
+    // Autofill profile
+
     const fillData = () => {
+
+        instance.acquireTokenSilent({
+            ...loginRequest,
+            account: accounts[0]
+        }).then((response) => {
+            setToken(response.idToken);
+        });
+
+
         FirstName.handleSet(props.item.firstName);
         LastName.handleSet(props.item.lastName);
         InputEmail.handleSet(props.item.emailId);
@@ -95,21 +113,20 @@ export const Forms = (props) => {
         console.log("Auto Fill Competed");
     }
 
+    // Call Autofill
+
     useEffect(() => {
         fillData();
     }, [])
+
+    // Job Validation
 
     const searchJob = () => {
         const form = profileForm.current;
         const jobId = form['Job'].value;
         console.log(jobId);
 
-        instance.acquireTokenSilent({
-            ...loginRequest,
-            account: accounts[0]
-        }).then((response) => {
-            setToken(response.idToken);
-        });
+
 
         var bearer = 'Bearer ' + token;
         var url = 'https://hrgtareferservicedev.azurewebsites.net/v2/job/' + jobId;
@@ -137,6 +154,8 @@ export const Forms = (props) => {
 
     }
 
+    // Update Profile
+
     const sendForm = async (e) => {
         e.preventDefault();
         const { FirstName, LastName, InputEmail, MobileNo, Location, Relation, About, Code } = e.target
@@ -145,8 +164,6 @@ export const Forms = (props) => {
         console.log(LastName.value);
 
         const profileId = (props.item?.profileId)?.toString();
-
-        const ResumeUri = props.item?.resumeUri;
 
         var url = 'https://referralprofilesv2-api.azure-api.net/v1/profiles/'
 
@@ -176,31 +193,28 @@ export const Forms = (props) => {
         setSaveProfile(true);
     }
 
+
+    // Create Refer
+
     const handleClickEvent = () => {
         const form = profileForm.current;
         const formData = new FormData();
+        const ResumeUri = generateGuid();
 
         formData.append('firstName', form['FirstName'].value);
         formData.append('lastName', form['LastName'].value);
         formData.append('candidateEmail', form['InputEmail'].value);
-        formData.append('location', form['Location'].value);
+        formData.append('candidatePhone', form['MobileNo'].value);
+        formData.append('location', parseInt(form['Location'].value));
         formData.append('profile', form['Position'].value);
         formData.append('jobIds', form['Job'].value);
         formData.append('acquaintanceLevel', form['Relation'].value);
         formData.append('additionalInformation', form['About'].value);
         formData.append('campaignCode', form['Code'].value);
-        formData.append('isEndorsed', selectedisEndorsed.toString());
-        formData.append('isUniversityStudent', selectedisUniversity.toString());
+        formData.append('isEndorsed', parseInt(selectedisEndorsed ? 1 : 0));
+        formData.append('isUniversityStudent', selectedisUniversity);
         formData.append('resumeUri', ResumeUri);
 
-
-        instance.acquireTokenSilent({
-            ...loginRequest,
-            account: accounts[0]
-        }).then((response) => {
-            // console.log("Token = " + token);
-            setToken(response.idToken);
-        });
 
         var bearer = 'Bearer ' + token;
         console.log("Testing bearer = " + bearer);
@@ -220,6 +234,13 @@ export const Forms = (props) => {
                 console.error('Error:', error);
             });
         setReferCall(true);
+    }
+
+    //Generate guid id for Resume
+
+    function generateGuid() {
+        return Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15);
     }
 
 

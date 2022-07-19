@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { profiles } from "./Data/profiles";
 import { Button, Text, Form, Input, FormField, FormLabel, FormMessage, FormTextArea, FormInput, FormRadioGroup, Divider, Alert } from '@fluentui/react-northstar';
 import Banner from 'react-js-banner';
@@ -8,6 +8,8 @@ import { useMsal } from "@azure/msal-react";
 
 export const FormsDirect = (props) => {
 
+    // Hooks Initialization
+
     const profileForm = useRef(null);
     const [saveProfile, setSaveProfile] = useState(false);
     const [referCall, setReferCall] = useState(false);
@@ -16,10 +18,14 @@ export const FormsDirect = (props) => {
     const { instance, accounts } = useMsal();
     const [token, setToken] = useState();
 
+    // Dropdown options
+
     let profilesData = profiles();
     let Profiles = profilesData.map((profile) =>
         <option value={profile.key}>{profile.text}</option>
     );
+
+    // Job Validation
 
     const searchJob = () => {
         const form = profileForm.current;
@@ -58,32 +64,27 @@ export const FormsDirect = (props) => {
             });
     }
 
+    // Create Referral
+
     const handleClickEvent = () => {
         const form = profileForm.current;
-        console.log(`${props.item.firstName} ${props.item.lastName}`)
+        const ResumeUri = generateGuid();
         const formData = new FormData();
 
         formData.append('firstName', props.item.firstName);
         formData.append('lastName', props.item.lastName);
-        formData.append('candidateEmail', props.item.inputEmail);
-        formData.append('location', props.item.location);
+        formData.append('candidateEmail', props.item.emaidId);
+        formData.append('candidatePhone', props.item.mobileNo);
+        formData.append('location', parseInt(props.item.location));
         formData.append('profile', form['Position'].value);
         formData.append('jobIds', form['Job'].value);
         formData.append('acquaintanceLevel', props.item.relation);
         formData.append('additionalInformation', props.item.about);
         formData.append('campaignCode', props.item.code);
-        formData.append('isUniversityStudent', props.item.isUniversity);
-        formData.append('isEndorsed', props.item.isEndorsed);
-        formData.append('resumeUri', props.item.resumeUri);
+        formData.append('isUniversityStudent', (props.item.isUniversity ? true : false));
+        formData.append('isEndorsed', (props.item.isEndorsed ? 1 : 0));
+        formData.append('resumeUri', ResumeUri);
 
-
-        instance.acquireTokenSilent({
-            ...loginRequest,
-            account: accounts[0]
-        }).then((response) => {
-            // console.log("Token = " + token);
-            setToken(response.idToken);
-        });
 
         var bearer = 'Bearer ' + token;
         console.log("Testing bearer = " + bearer);
@@ -106,12 +107,19 @@ export const FormsDirect = (props) => {
         setReferCall(true);
     }
 
+    //Generate guid id for Resume
+
+  function generateGuid() {
+    return Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
+  }
+
 
     return (
         <div>
             <Form ref={profileForm}>
                 <div></div>
-                <FormInput label="Search for Job IDs" name="Job" type="text" id="Job" aria-describedby="Search for Job IDs" placeholder="Enter ID" style={{ margin: "5px 0 5px 0" }} onChange={searchJob} fluid />
+                <FormInput label="Search for Job IDs" name="Job" type="text" id="Job" aria-describedby="Search for Job IDs" placeholder="Enter ID" style={{ margin: "5px 0 5px 0" }} onChange={searchJob} fluid required />
                 <p id="jobValidation" style={{ color: "green", fontStyle: "italic" }}></p>
 
                 <label htmlFor="Position">Which job profile are you referring the candidate for?*</label>
@@ -133,7 +141,7 @@ export const FormsDirect = (props) => {
                     bottom:"1.5rem",
                     left: "9rem"
                   }}
-                  visibleTime={1500}
+                  visibleTime={15000}
                 />
                 : <></>
               }

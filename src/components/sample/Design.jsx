@@ -13,16 +13,16 @@ import "./Design.css";
 import Banner from 'react-js-banner';
 import "./Carousel.css";
 import { AffindaCredential, AffindaAPI } from "@affinda/affinda";
+import { Alert } from "bootstrap";
 
 export function Design() {
 
   //Initializing hooks
 
   const { instance, accounts } = useMsal();
-  const [token, setToken] = useState();
+  const [token, setToken] = useState("");
   const profileForm = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [selectedJob, setSelectedJob] = useState(false);
   const [selectedAutofill, setAutofill] = useState(false);
   const [selectedAutofillComplete, setAutofillComplete] = useState(false);
   const [AlertResume, setAlertResume] = useState(false);
@@ -32,6 +32,7 @@ export function Design() {
   const [selectedisUniversity, setisUniversity] = useState(true);
   const [isSubmit, setisSubmit] = useState(false);
   const [recommendedJobs, setRecommendedJobs] = useState(null);
+  const [loadCarousel, setLoadCarousel] = useState(false);
 
   // Initializing useInputState hook
 
@@ -107,7 +108,16 @@ export function Design() {
   const changeHandler = async (event) => {
 
     setAlertResume(true);
+    setLoadCarousel(true);
     setAutofill(true);
+
+    // Generating Id Token for the Refer API using MSAL Provider
+    instance.acquireTokenSilent({
+      ...loginRequest,
+      account: accounts[0]
+    }).then((response) => {
+      setToken(response.idToken);
+    });
 
     //Calling Affinda API and parsing resume
 
@@ -129,6 +139,9 @@ export function Design() {
       skills = "\"" + skills + "\"";
       getRecommendedJobs(skills);
 
+      setAutofill(false);
+      setAutofillComplete(true);
+
     }).catch((err) => {
       console.log("An error occurred:");
       console.error(err);
@@ -137,8 +150,7 @@ export function Design() {
     const target = event.target;
     setSelectedFile(target.files[0]);
 
-    setAutofill(false);
-    setAutofillComplete(true);
+
   };
 
   //Get Recommended Job based on skills in resume
@@ -146,7 +158,7 @@ export function Design() {
   const getRecommendedJobs = (skills) => {
 
     //Temporary Access Token for the Recommendations API
-    const bearer = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjJaUXBKM1VwYmpBWVhZR2FYRUpsOGxWMFRPSSJ9.eyJhdWQiOiJmNTEwNzM1YS02YzlhLTQ1NDEtODgyOC03YWQyN2QyOTg5NzYiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vNzJmOTg4YmYtODZmMS00MWFmLTkxYWItMmQ3Y2QwMTFkYjQ3L3YyLjAiLCJpYXQiOjE2NTgxODk5NjEsIm5iZiI6MTY1ODE4OTk2MSwiZXhwIjoxNjU4MTk0NzU2LCJhaW8iOiJBWFFBaS84VEFBQUFwMEJnQWdLdCtvS1hNOWpaUUN0RlUyY3pob0lhVElLMXJ5bkQ4cEh1SldwWWdGUkMzYWlaTDFyOUdrazNEV3NNK25hZDB0ZXB5VlBFV0dkQmxSTG5vem9BZEtKaFE3MHQwT1djWnYwczkveUFOQWFQM1VHL3BtTkdDazBQenR1Q3hBbUtGWnVzT0RMdDR3SVZoMElsdVE9PSIsImF6cCI6ImY1MTA3MzVhLTZjOWEtNDU0MS04ODI4LTdhZDI3ZDI5ODk3NiIsImF6cGFjciI6IjAiLCJuYW1lIjoiSGFyc2ggU2hyaXZhc3RhdmEiLCJvaWQiOiI4ZWNhYzIwZi04MDE1LTRjNmQtOTk3NC03NTMwNDMyZTQ0ZjQiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0LWhhcnNoc2hAbWljcm9zb2Z0LmNvbSIsInJoIjoiMC5BUUVBdjRqNWN2R0dyMEdScXkxODBCSGJSMXB6RVBXYWJFRkZpQ2g2MG4wcGlYWWFBTmMuIiwic2NwIjoiRGlyZWN0b3J5LlJlYWQuQWxsIFVzZXIuUmVhZCBVc2VyLlJlYWQuQWxsIFVzZXIuUmVhZEJhc2ljLkFsbCIsInN1YiI6IjFVREpNMktiTjNDT1V3WjQ4Rmx6Q1NZZU81WXFPOExJVEViMDdzbXpYTzQiLCJ0aWQiOiI3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDciLCJ1cG4iOiJ0LWhhcnNoc2hAbWljcm9zb2Z0LmNvbSIsInV0aSI6IkFZYXZKc0Uxd0VtWjVmMmJLeEVCQUEiLCJ2ZXIiOiIyLjAifQ.AaDAOIUY7Y4_NcU8L5aRRgl-WiY83ywxynbDAcL5yeCasEUvZmy95yRh475D4Gecl3LQtd6tpgBBrIHOVA3fSbCiE07T7xnCut83KNisMYoEWR1ddcMG-vTigU6-bxgXER1V_bbxv8AJ3Rq259UrAC9b-3Z7-B6gY1LyvLhRGh2lCD1lxmUCQGAwh31ZIibOm88r2kXLcOoICOR7XfgsbL_1ainENtY6JZ_yisnxsUu4QRjTrj411VvOHXoI4-ePFioVGU-18kKCPnq9S5J6ljEs8D925sxtRretXf2w0FM4Mx2f_eWpGns93tBsAqmn-_oQw1xCPFJSPQhuTFQmmA";
+    const bearer = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjJaUXBKM1VwYmpBWVhZR2FYRUpsOGxWMFRPSSJ9.eyJhdWQiOiJmNTEwNzM1YS02YzlhLTQ1NDEtODgyOC03YWQyN2QyOTg5NzYiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vNzJmOTg4YmYtODZmMS00MWFmLTkxYWItMmQ3Y2QwMTFkYjQ3L3YyLjAiLCJpYXQiOjE2NTgyMzY1MTQsIm5iZiI6MTY1ODIzNjUxNCwiZXhwIjoxNjU4MjQxNzQ5LCJhaW8iOiJBWFFBaS84VEFBQUFnSFhnT1VZU2ZnNW9Ja3gyYkphZHNiTzI4OHlMNkNPRFJrY0ZVQVM3Z3Ixdnhyd3d4bjUrb1RxRWgyMTNkbDNGUm5uUXJGWXVvRFQ0T3I5dnRMQlVudzRUSlVHMDRNRFJFQjlTcytqcTlZNkk0YnF1d0xtdG1jSG5RY3hVYlJKKzVZdkYxTXlPakN2cnYxY1JTT2RhU0E9PSIsImF6cCI6ImY1MTA3MzVhLTZjOWEtNDU0MS04ODI4LTdhZDI3ZDI5ODk3NiIsImF6cGFjciI6IjAiLCJuYW1lIjoiSGFyc2ggU2hyaXZhc3RhdmEiLCJvaWQiOiI4ZWNhYzIwZi04MDE1LTRjNmQtOTk3NC03NTMwNDMyZTQ0ZjQiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0LWhhcnNoc2hAbWljcm9zb2Z0LmNvbSIsInJoIjoiMC5BUUVBdjRqNWN2R0dyMEdScXkxODBCSGJSMXB6RVBXYWJFRkZpQ2g2MG4wcGlYWWFBTmMuIiwic2NwIjoiRGlyZWN0b3J5LlJlYWQuQWxsIFVzZXIuUmVhZCBVc2VyLlJlYWQuQWxsIFVzZXIuUmVhZEJhc2ljLkFsbCIsInN1YiI6IjFVREpNMktiTjNDT1V3WjQ4Rmx6Q1NZZU81WXFPOExJVEViMDdzbXpYTzQiLCJ0aWQiOiI3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDciLCJ1cG4iOiJ0LWhhcnNoc2hAbWljcm9zb2Z0LmNvbSIsInV0aSI6InJxMVdJdHZUV1VpREVLR2RkZXNJQUEiLCJ2ZXIiOiIyLjAifQ.qU2P42JpLhZyWxLYW-fqg_H0DQlMgz_MJyirlThOSGGAB-59rBxuf_XX1_B59gm75mChcpSar8pMn3zO5OM8W6NwgiXO1saWPA7-CUc5vsIXytSzeuwvKUeSSMYutZSEquASB0NLOOHkSrb06J-kLhMCxXBCFzGP6GJa6pdNRqqHpZrpUjytI55aLYkvUSIo-FAh7Swpw81Bk9Qka13wo0K5C_dUkHIW6BdibTjMGf23dbyJ1scJY6NhvjHsbh7myJ0XwzFoRhgYmAb3aFmgHnoNaozhuAiZRsIt5GRH4nPSwRlVKxw-hVxkTbWGjVNj_80N_esqKblt-AxJJ2P8VA";
     console.log("here = ", skills);
 
     fetch('https://msrecruitdev.microsoft.com/interviewservice/v1/TM/jobRecommendationsBySkills', {
@@ -157,9 +169,10 @@ export function Design() {
       method: 'POST',
       body: skills,
     }).then(response => response.json())
-      .then(data => setRecommendedJobs(data));
-    console.log("Recommended jobs = ", recommendedJobs);
-
+      .then(data => {
+        setRecommendedJobs(data);
+        setLoadCarousel(false);
+      });
   }
 
   //Job Recommendation Carousel
@@ -176,7 +189,6 @@ export function Design() {
 
     const fillRecommendedJob = (item) => {
       Job.handleSet(item.externalJobOpeningId);
-      // document.getElementById("jobValidation").innerHTML = item.externalJobOpeningId + " - " + result.jobTitle;
     }
 
 
@@ -283,33 +295,27 @@ export function Design() {
   //Call the Refer API
 
   const handleClickEvent = () => {
+
+
     setisSubmit(true);
     let form = profileForm.current;
     const ResumeUri = generateGuid();
     const formData = new FormData();
-    if (selectedFile) {
-      formData.append('firstName', form['FirstName'].value);
-      formData.append('lastName', form['LastName'].value);
-      formData.append('candidateEmail', form['InputEmail'].value);
-      formData.append('candidatePhone', form['MobileNo'].value);
-      formData.append('location', form['Location'].value);
-      formData.append('profile', form['Position'].value);
-      formData.append('acquaintanceLevel', form['Relation'].value);
-      formData.append('isEndorsed', selectedisEndorsed.toString());
-      formData.append('isUniversityStudent', selectedisUniversity.toString());
-      formData.append('additionalInformation', form['About'].value);
-      formData.append('campaignCode', form['Code'].value);
-      formData.append('resumeFile', selectedFile);
-      formData.append('resumeUri', ResumeUri);
-    }
+    formData.append('firstName', form['FirstName'].value);
+    formData.append('lastName', form['LastName'].value);
+    formData.append('candidateEmail', form['InputEmail'].value);
+    formData.append('candidatePhone', form['MobileNo'].value);
+    formData.append('location', parseInt(form['Location'].value));
+    formData.append('profile', form['Position'].value);
+    formData.append('acquaintanceLevel', parseInt(form['Relation'].value));
+    formData.append('isEndorsed', parseInt(selectedisEndorsed ? 1 : 0));
+    formData.append('isUniversityStudent', selectedisUniversity);
+    formData.append('additionalInformation', form['About'].value);
+    formData.append('campaignCode', form['Code'].value);
+    formData.append('resumeFile', selectedFile);
+    formData.append('resumeUri', ResumeUri);
 
-    instance.acquireTokenSilent({
-      ...loginRequest,
-      account: accounts[0]
-    }).then((response) => {
-      console.log("Access Token = " + response.accessToken);
-      setToken(response.idToken);
-    });
+
 
     var bearer = 'Bearer ' + token;
     console.log("Testing bearer = " + bearer);
@@ -516,10 +522,12 @@ export function Design() {
                         height: "30px",
                         width: "10rem",
                         position: "absolute",
-                        bottom: "7.5rem",
-                        left: "11rem"
+                        bottom: "45%",
+                        left: "18%",
+                        color: "rgb(58, 109, 78)",
+                        fontWeight: "550"
                       }}
-                      visibleTime={1500}
+                      visibleTime={150000}
                     />
                     : <></>
                   }
@@ -527,8 +535,8 @@ export function Design() {
                     ? <Loader label="Autofilling..." labelPosition="end" size="small" inline
                       style={{
                         position: "absolute",
-                        right: "13rem",
-                        bottom: "7.8rem"
+                        right: "43%",
+                        bottom: "0%"
                       }} />
                     : <></>
                   }
@@ -540,10 +548,12 @@ export function Design() {
                         height: "30px",
                         width: "10rem",
                         position: "absolute",
-                        left: "27rem",
-                        bottom: "0rem"
+                        left: "43%",
+                        bottom: "0%",
+                        color: "rgb(58, 109, 78)",
+                        fontWeight: "550"
                       }}
-                      visibleTime={1500}
+                      visibleTime={2000}
                     />
                     : <></>
                   }
@@ -626,14 +636,29 @@ export function Design() {
                   <br />
 
                   <FormInput label="Search for Job IDs" {...Job.values} name="Job" type="text" id="Job" aria-describedby="Search for Job IDs" placeholder="" style={{ margin: "5px 0 5px 0" }} fluid />
-                  <p id="jobValidation" style={{ fontStyle: "italic", color: "green" }}></p>
+                  <p id="jobValidation" style={{ fontStyle: "italic", color: "green", }}></p>
+
 
                   <div >Job Recommendations :</div>
+                  {loadCarousel
+                    ? <Loader size="small" style={{ marginTop: "10%" }} />
+                    : <></>
+                  }
                   {recommendedJobs
                     ? <JobCarousel />
-                    : <Loader style={{marginTop:"50px"}}/>
+                    : <Banner
+                      title="Upload Resume and we'll Recommend the Best Jobs for you!"
+                      css={{
+                        backgroundColor: "rgba(243, 253, 194, 0.7)",
+                        fontSize: "13px",
+                        fontWeight: "500",
+                        height: "30px",
+                        width: "15rem",
+                        marginTop: "10%",
+                        marginLeft: "10%",
+                      }}
+                    />
                   }
-
 
 
                 </CardBody>
@@ -749,12 +774,13 @@ export function Design() {
                 ? <Banner
                   title="Profile Saved"
                   css={{
-                    backgroundColor: "rgb(173, 210, 173)",
+                    backgroundColor: "rgba(173, 210, 173, 0.7)",
                     height: "30px",
                     width: "10rem",
                     position: "absolute",
-                    left: "28rem",
-                    color: "green"
+                    left: "28%",
+                    color: "rgb(58, 109, 78)",
+                    fontWeight: "550"
                   }}
                   visibleTime={1500}
                 />
@@ -768,8 +794,9 @@ export function Design() {
                     height: "30px",
                     width: "12rem",
                     position: "absolute",
-                    right: "24rem",
-                    color: "green"
+                    right: "25%",
+                    color: "rgb(58, 109, 78)",
+                    fontWeight: "550"
                   }}
                   visibleTime={1500}
                 />

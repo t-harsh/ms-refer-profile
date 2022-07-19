@@ -14,6 +14,7 @@ import Banner from 'react-js-banner';
 import "./Carousel.css";
 import { AffindaCredential, AffindaAPI } from "@affinda/affinda";
 import { Alert } from "bootstrap";
+import history from "./../../history";
 
 export function Design() {
 
@@ -422,7 +423,7 @@ export function Design() {
                 <div className="info-content">
                   <Divider />
                   <br />
-                  <MeetingNewIcon />&nbsp;&nbsp; Referring your friends just 2 clicks away
+                  <MeetingNewIcon />&nbsp;&nbsp; Referring your friends just clicks away
                 </div>
 
               </CardBody>
@@ -443,7 +444,11 @@ export function Design() {
         >
           <Card aria-roledescription="card avatar"
             elevated
-            onClick={() => window.location.href = "/Saved-Profiles"}
+            // onClick={() => window.location.href = "/Saved-Profiles"}
+            onClick={() => {
+              history.push('/Saved-Profiles');
+             window.location.reload(false); 
+          }}
             inverted
             className="Cards"
             style={{ backgroundColor: "#fcfcfc", width: "70%", marginLeft: "40px" }}>

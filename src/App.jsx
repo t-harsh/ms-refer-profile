@@ -10,6 +10,7 @@ import { Deploy } from "./components/sample/Deploy"
 import { Route, Routes } from "react-router-dom"
 import "./App.css";
 import { Text, Button } from '@fluentui/react-northstar';
+import history from './history';
 
 /**
  * Renders information about the signed-in user or a button to retrieve data about the user
@@ -94,7 +95,7 @@ export default function App() {
         </div>
         
         <div className="holder">
-        <Routes>
+        <Routes history={history}>
           <Route path="/" element={<Design/>} />
           <Route path="/Refer" element={<Design />} />
           <Route path="/Saved-Profiles" element={<Deploy/>} />

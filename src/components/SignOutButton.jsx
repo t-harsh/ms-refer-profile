@@ -23,6 +23,6 @@ export const SignOutButton = () => {
         }
     }
     return (
-        <Button icon={<GeofenceLeavesIcon size='large' rotate={-90}/>} content="Sign Out" iconPosition="before" onClick={() => handleLogout("popup")} primary className="ml-auto" />
+        <Button icon={<GeofenceLeavesIcon size='large' rotate={-90}/>} content="Sign Out" iconPosition="before" onClick={() => handleLogout("redirect")} primary className="ml-auto" />
     )
 }

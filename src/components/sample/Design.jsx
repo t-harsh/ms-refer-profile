@@ -13,7 +13,6 @@ import "./Design.css";
 import Banner from 'react-js-banner';
 import "./Carousel.css";
 import { AffindaCredential, AffindaAPI } from "@affinda/affinda";
-import { useNavigate } from "react-router-dom";
 
 
 export function Design() {
@@ -46,13 +45,6 @@ export function Design() {
   const Job = useInputState();
 
 
-  // React Router Dom
-
-  const navigate = useNavigate();
-
-  const redirectDeploy = () => {
-    navigate("/Saved-Profiles")
-  }
 
   //Drop down items
 
@@ -454,7 +446,6 @@ export function Design() {
           <Card aria-roledescription="card avatar"
             elevated
             onClick={() => window.location = "/Saved-Profiles"}
-            // onClick={redirectDeploy}
             inverted
             className="Cards"
             style={{ backgroundColor: "#fcfcfc", width: "70%", marginLeft: "40px" }}>

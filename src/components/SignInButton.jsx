@@ -23,6 +23,6 @@ export const SignInButton = () => {
         }
     }
     return (
-        <Button icon={<ApprovalsAppbarIcon />} content="Sign In" iconPosition="before" onClick={() => handleLogin("popup")} primary className="ml-auto" />
+        <Button icon={<ApprovalsAppbarIcon />} content="Sign In" iconPosition="before" onClick={() => handleLogin("redirect")} primary className="ml-auto" />
     )
 }

@@ -32,7 +32,7 @@ const ProfileContent = () => {
     return (
         <>
             {graphData ?
-                <ProfileData graphData={graphData}/>
+                <ProfileData graphData={graphData} />
                 :
                 <Button primary onClick={RequestProfileData}>Request Profile Information</Button>
             }
@@ -45,17 +45,17 @@ const ProfileContent2 = () => {
     const { instance, accounts } = useMsal();
     return (
         <>
-            <p className="card-title">&nbsp;Welcome <b style={{color:"#444791", fontFamily:"Segoe UI"}}> {accounts[0].name} </b> to the MS Referral!</p>
+            <p className="card-title">&nbsp;Welcome <b style={{ color: "#444791", fontFamily: "Segoe UI" }}> {accounts[0].name} </b> to the MS Referral!</p>
         </>
     );
 };
 
 
 export const MainContent = () => {
-        return (
+    return (
         <div className="App">
             <AuthenticatedTemplate>
-                <ProfileContent/>
+                <ProfileContent />
             </AuthenticatedTemplate>
 
             <UnauthenticatedTemplate>
@@ -66,10 +66,10 @@ export const MainContent = () => {
 };
 
 export const MainContent2 = () => {
-        return (
+    return (
         <div className="App">
             <AuthenticatedTemplate>
-                <ProfileContent2/>
+                <ProfileContent2 />
             </AuthenticatedTemplate>
 
             <UnauthenticatedTemplate>
@@ -82,24 +82,25 @@ export const MainContent2 = () => {
 export default function App() {
     return (
         <>
-        <PageLayout>
-        <div style={{marginTop: "70px"}}>
-            
-        </div>
-            <MainContent2/>
-        </PageLayout>
+            <PageLayout>
+                <div style={{ marginTop: "70px" }}>
 
-        <div style={{marginTop: "100px"}}>
-            
-        </div>
-        
-        <div className="holder">
-        <Routes>
-          <Route path="/" element={<Design/>} />
-          <Route path="/Refer" element={<Design />} />
-          <Route path="/Saved-Profiles" element={<Deploy/>} />
-        </Routes>
-      </div>
-      </>
+                </div>
+                <MainContent2 />
+            </PageLayout>
+
+            <div style={{ marginTop: "100px" }}>
+
+            </div>
+
+            <div className="holder">
+                
+                <Routes>
+                    <Route path="/" element={<Design />} />
+                    <Route path="/Refer" element={<Design />} />
+                    <Route path="/Saved-Profiles" element={<Deploy />} />
+                </Routes>
+            </div>
+        </>
     );
 }

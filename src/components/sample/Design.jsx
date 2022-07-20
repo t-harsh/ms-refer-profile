@@ -453,8 +453,8 @@ export function Design() {
         >
           <Card aria-roledescription="card avatar"
             elevated
-            // onClick={() => window.location.href = "/Saved-Profiles"}
-            onClick={redirectDeploy}
+            onClick={() => window.location = "/Saved-Profiles"}
+            // onClick={redirectDeploy}
             inverted
             className="Cards"
             style={{ backgroundColor: "#fcfcfc", width: "70%", marginLeft: "40px" }}>
